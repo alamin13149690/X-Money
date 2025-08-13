@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>👑 Admin Panel - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #FFD700; font-family: sans-serif; padding: 20px; text-align: center; }
+    input, button { padding: 10px; margin: 10px; width: 85%; border-radius: 5px; border: none; font-weight: bold; }
+    button { background: #FFD700; color: #000; box-shadow: 0 0 10px #FFD700; }
+    .card { background: #111; padding: 20px; margin: 15px auto; border-radius: 10px; box-shadow: 0 0 10px #FFD700; width: 90%; max-width: 400px; }
+    .status { margin-top: 20px; font-size: 1.1em; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>👑 Admin Panel</h2>
+
+  <!-- 🔐 Admin Login -->
+  <div class="card" id="loginCard">
+    <h3>🔐 Enter Admin Password</h3>
+    <input type="password" id="adminPass" placeholder="Admin Password">
+    <button onclick="checkPassword()">Login</button>
+    <div class="status" id="loginStatus">Access required...</div>
+  </div>
+
+  <!-- 🎮 Game Add -->
+  <div class="card" id="gameCard" style="display:none;">
+    <h3>🎮 Add New Game</h3>
+    <input type="text" id="gameName" placeholder="Game Name">
+    <input type="text" id="gameType" placeholder="Game Type (e.g. spin)">
+    <input type="text" id="reward" placeholder="Reward (e.g. ৳50)">
+    <button onclick="addGame()">Add Game</button>
+    <div class="status" id="gameStatus">Ready to add...</div>
+  </div>
+
+  <!-- 📥 Deposits -->
+  <div class="card" id="depositCard" style="display:none;">
+    <h3>📥 Pending Deposits</h3>
+    <div id="depositList">Loading...</div>
+  </div>
+
+  <!-- 📤 Withdrawals -->
+  <div class="card" id="withdrawCard" style="display:none;">
+    <h3>📤 Pending Withdrawals</h3>
+    <div id="withdrawList">Loading...</div>
+  </div>
+
+  <!-- 👤 User Control -->
+  <div class="card" id="userCard" style="display:none;">
+    <h3>👤 User Control</h3>
+    <input type="text" id="targetUid" placeholder="User UID">
+    <input type="number" id="newWallet" placeholder="New Wallet Amount">
+    <input type="number" id="newVIP" placeholder="New VIP Level">
+    <button onclick="updateUser()">Update User</button>
+    <button onclick="banUser()">Ban User</button>
+    <button onclick="unbanUser()">Unban User</button>
+    <div class="status" id="userStatus">...</div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    const correctPassword = "alamin0011";
+
+    function checkPassword() {
+      const input = document.getElementById("adminPass").value;
+      const status = document.getElementById("loginStatus");
+      if (input === correctPassword) {
+        document.getElementById("loginCard").style.display = "none";
+        document.getElementById("gameCard").style.display = "block";
+        document.getElementById("depositCard").style.display = "block";
+        document.getElementById("withdrawCard").style.display = "block";
+        document.getElementById("userCard").style.display = "block";
+        loadDeposits();
+        loadWithdrawals();
+      } else {
+        status.innerText = "❌ Wrong password.";
+      }
+    }
+
+    function addGame() {
+      const name = document.getElementById("gameName").value.trim();
+      const type = document.getElementById("gameType").value.trim();
+      const reward = document.getElementById("reward").value.trim();
+      const status = document.getElementById("gameStatus");
+      if (!name || !type || !reward) {
+        status.innerText = "❌ Fill all fields.";
+        return;
+      }
+      db.collection("gameList").add({
+        name, type, reward, addedBy: "admin", time: new Date().toISOString()
+      }).then(() => {
+        status.innerText = `✅ Game "${name}" added.`;
+      }).catch(err => {
+        status.innerText = "❌ Error: " + err.message;
+      });
+    }
+
+    function loadDeposits() {
+      db.collection("deposits").where("status", "==", "pending").get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          html += `৳${d.amount} → ${d.method}<br>TRX: ${d.trxId}<br>
+            <button onclick="approveDeposit('${doc.id}', ${d.amount}, '${d.uid}')">Approve</button>
+            <button onclick="rejectDeposit('${doc.id}')">Reject</button><hr>`;
+        });
+        document.getElementById("depositList").innerHTML = html || "✅ No pending deposits.";
+      });
+    }
+
+    function loadWithdrawals() {
+      db.collection("withdrawals").where("status", "==", "pending").get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const w = doc.data();
+          html += `৳${w.amount} → ${w.method}<br>Number: ${w.number}<br>
+            <button onclick="approveWithdraw('${doc.id}', ${w.amount}, '${w.uid}')">Approve</button>
+            <button onclick="rejectWithdraw('${doc.id}')">Reject</button><hr>`;
+        });
+        document.getElementById("withdrawList").innerHTML = html || "✅ No pending withdrawals.";
+      });
+    }
+
+    function approveDeposit(docId, amount, uid) {
+      db.collection("deposits").doc(docId).update({ status: "approved" });
+      const userRef = db.collection("users").doc(uid);
+      userRef.get().then(doc => {
+        const current = doc.data().wallet || 0;
+        userRef.update({ wallet: current + amount });
+      });
+    }
+
+    function rejectDeposit(docId) {
+      db.collection("deposits").doc(docId).update({ status: "rejected" });
+    }
+
+    function approveWithdraw(docId, amount, uid) {
+      db.collection("withdrawals").doc(docId).update({ status: "approved" });
+      const userRef = db.collection("users").doc(uid);
+      userRef.get().then(doc => {
+        const current = doc.data().wallet || 0;
+        userRef.update({ wallet: current - amount });
+      });
+    }
+
+    function rejectWithdraw(docId) {
+      db.collection("withdrawals").doc(docId).update({ status: "rejected" });
+    }
+
+    function updateUser() {
+      const uid = document.getElementById("targetUid").value;
+      const wallet = parseFloat(document.getElementById("newWallet").value);
+      const vip = parseInt(document.getElementById("newVIP").value);
+      db.collection("users").doc(uid).update({ wallet, vipLevel: vip }).then(() => {
+        document.getElementById("userStatus").innerText = "✅ User updated.";
+      });
+    }
+
+    function banUser() {
+      const uid = document.getElementById("targetUid").value;
+      db.collection("users").doc(uid).update({ banned: true }).then(() => {
+        document.getElementById("userStatus").innerText = "🚫 User banned.";
+      });
+    }
+
+    function unbanUser() {
+      const uid = document.getElementById("targetUid").value;
+      db.collection("users").doc(uid).update({ banned: false }).then(() => {
+        document.getElementById("userStatus").innerText = "✅ User unbanned.";
+      });
+    }
+  </script>
+</body>
+</html>

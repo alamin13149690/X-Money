@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🎯 Spin Master Pro - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: radial-gradient(#000, #111); color: #FFD700; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 20px; background: #FFD700; color: #000; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 0 10px #FFD700; }
+    .wheel { width: 220px; height: 220px; border-radius: 50%; margin: 20px auto; background: conic-gradient(#FFD700 0% 20%, #222 20% 40%, #FFD700 40% 60%, #222 60% 80%, #FFD700 80% 100%); box-shadow: 0 0 25px #FFD700; animation: pulse 2s infinite; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px #FFD700; }
+      50% { box-shadow: 0 0 40px #FFD700; }
+      100% { box-shadow: 0 0 10px #FFD700; }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; color: #0f0; }
+  </style>
+</head>
+<body>
+  <h2>🎯 Spin Master Pro</h2>
+  <div class="wheel"></div>
+  <button onclick="spin()">SPIN NOW</button>
+  <div class="status" id="status">Ready for VIP rewards!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+
+      // Optional VIP check
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const vip = doc.data().vipLevel || 0;
+        if (vip < 3) {
+          document.getElementById("status").innerText = "🔒 VIP 3 required to play Spin Master Pro.";
+          document.querySelector("button").disabled = true;
+        }
+      });
+    });
+
+    function spin() {
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+      const rewards = [50, 100, 200, 500, 1000];
+      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+      status.innerText = `🎉 You won ৳${reward} from Spin Master Pro!`;
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "spinMasterPro",
+        result: "win",
+        reward: `৳${reward}`,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

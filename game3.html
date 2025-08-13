@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game 3 - Crash Rocket</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    .multiplier { font-size: 3em; margin: 20px; }
+    button { padding: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; margin: 5px; }
+    .result { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🚀 Crash Rocket</h2>
+  <div class="multiplier" id="multiplier">x1.00</div>
+  <button onclick="startGame()">Start</button>
+  <button onclick="cashOut()">Cash Out</button>
+  <div class="result" id="result"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let multiplier = 1.00;
+    let interval;
+    let crashed = false;
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function startGame() {
+      multiplier = 1.00;
+      crashed = false;
+      document.getElementById("result").innerText = "";
+      interval = setInterval(() => {
+        multiplier += 0.05;
+        document.getElementById("multiplier").innerText = "x" + multiplier.toFixed(2);
+        if (multiplier >= Math.random() * 5 + 2) {
+          clearInterval(interval);
+          crashed = true;
+          document.getElementById("result").innerText = "💥 Crashed at x" + multiplier.toFixed(2);
+        }
+      }, 100);
+    }
+
+    function cashOut() {
+      const user = auth.currentUser;
+      if (!user || crashed || !interval) return;
+
+      clearInterval(interval);
+      const reward = "৳" + (multiplier * 10).toFixed(0);
+      document.getElementById("result").innerText = `✅ Cashed out at x${multiplier.toFixed(2)} → ${reward}`;
+
+      const log = {
+        uid: user.uid,
+        email: user.email,
+        gameId: "game3",
+        multiplier: multiplier.toFixed(2),
+        reward: reward,
+        time: new Date().toISOString()
+      };
+
+      db.collection("games").add(log)
+        .then(() => console.log("Crash game logged"))
+        .catch(err => console.error("Error:", err));
+    }
+  </script>
+</body>
+</html>

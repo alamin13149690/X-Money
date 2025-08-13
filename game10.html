@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🎲 Dice Duel - বাংলা ভার্সন</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: 'SolaimanLipi', sans-serif; text-align: center; padding: 30px; }
+    input, button { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; border: none; font-weight: bold; font-size: 1em; }
+    button { background: #0f0; color: #000; }
+    .dice { font-size: 4em; margin: 20px 0; }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>🎲 ডাইস ডুয়েল</h2>
+  <p>আপনার পছন্দের সংখ্যা লিখুন (১ থেকে ৬):</p>
+  <input type="number" id="guess" placeholder="আপনার সংখ্যা" min="1" max="6">
+  <button onclick="rollDice()">প্রতিদ্বন্দ্বীর ডাইস ঘোরান</button>
+
+  <div class="dice" id="dice">🎲</div>
+  <div class="status" id="status">প্রস্তুত...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function rollDice() {
+      const guess = parseInt(document.getElementById("guess").value);
+      const status = document.getElementById("status");
+      const dice = document.getElementById("dice");
+      const user = auth.currentUser;
+
+      if (!guess || guess < 1 || guess > 6) {
+        status.innerText = "❌ অনুগ্রহ করে ১ থেকে ৬ এর মধ্যে একটি সংখ্যা দিন।";
+        return;
+      }
+
+      const result = Math.floor(Math.random() * 6) + 1;
+      dice.innerText = `🎲 ${result}`;
+      let outcome = "হার";
+      let reward = "৳0";
+
+      if (guess === result) {
+        outcome = "জয়";
+        reward = "৳৩০";
+        status.innerText = `🎉 আপনি ${guess} অনুমান করেছেন এবং প্রতিদ্বন্দ্বী ${result} পেয়েছে।\n✅ আপনি জয়ী! পুরস্কার: ৳৩০`;
+      } else {
+        status.innerText = `😢 আপনি ${guess} অনুমান করেছেন কিন্তু প্রতিদ্বন্দ্বী পেয়েছে ${result}।\n❌ আপনি হারলেন।`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "diceDualBangla",
+        guess: guess,
+        rolled: result,
+        result: outcome,
+        reward: reward,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

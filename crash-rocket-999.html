@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🚀 Crash Rocket 999 - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input, button { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; border: none; font-weight: bold; }
+    button { background: #0f0; color: #000; }
+    .multiplier { font-size: 3em; margin: 20px 0; text-shadow: 0 0 10px #0f0; }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>🚀 Crash Rocket 999</h2>
+  <input type="number" id="betAmount" placeholder="Enter bet amount (৳)">
+  <button onclick="startGame()">Start</button>
+  <button onclick="cashOut()" id="cashBtn" disabled>💸 Cash Out</button>
+
+  <div class="multiplier" id="multiplier">1.00×</div>
+  <div class="status" id="status">Waiting to launch...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    let multiplier = 1.00;
+    let interval;
+    let crashed = false;
+    let cashedOut = false;
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function startGame() {
+      multiplier = 1.00;
+      crashed = false;
+      cashedOut = false;
+      document.getElementById("cashBtn").disabled = false;
+      document.getElementById("status").innerText = "🚀 Rocket launching...";
+      interval = setInterval(() => {
+        multiplier += 0.05 + Math.random() * 0.2;
+        document.getElementById("multiplier").innerText = multiplier.toFixed(2) + "×";
+
+        if (multiplier >= 999 || Math.random() < 0.005 + multiplier / 1500) {
+          crash();
+        }
+      }, 100);
+    }
+
+    function crash() {
+      clearInterval(interval);
+      crashed = true;
+      document.getElementById("cashBtn").disabled = true;
+      document.getElementById("status").innerText = "💥 Crashed at " + multiplier.toFixed(2) + "×";
+      const bet = parseFloat(document.getElementById("betAmount").value);
+
+      if (!cashedOut) {
+        document.getElementById("status").innerText += "\n❌ You lost!";
+        const user = auth.currentUser;
+        db.collection("games").add({
+          uid: user.uid,
+          email: user.email,
+          gameId: "crashRocket999",
+          bet: bet,
+          multiplier: multiplier.toFixed(2),
+          result: "loss",
+          reward: "৳0",
+          time: new Date().toISOString()
+        });
+      }
+    }
+
+    function cashOut() {
+      if (!crashed && !cashedOut) {
+        cashedOut = true;
+        clearInterval(interval);
+        const bet = parseFloat(document.getElementById("betAmount").value);
+        const win = (bet * multiplier).toFixed(2);
+        document.getElementById("status").innerText = `✅ Cashed out at ${multiplier.toFixed(2)}×\n🎉 You won ৳${win}`;
+        document.getElementById("cashBtn").disabled = true;
+
+        const user = auth.currentUser;
+        db.collection("games").add({
+          uid: user.uid,
+          email: user.email,
+          gameId: "crashRocket999",
+          bet: bet,
+          multiplier: multiplier.toFixed(2),
+          result: "win",
+          reward: `৳${win}`,
+          time: new Date().toISOString()
+        });
+      }
+    }
+  </script>
+</body>
+</html>

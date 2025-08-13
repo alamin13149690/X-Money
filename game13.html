@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🥷 Number Ninja - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input, button { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; border: none; font-weight: bold; font-size: 1em; }
+    button { background: #0f0; color: #000; box-shadow: 0 0 10px #0f0; }
+    .ninja { font-size: 4em; margin: 20px 0; animation: slash 1s infinite; }
+    @keyframes slash {
+      0% { transform: rotate(0deg); }
+      50% { transform: rotate(10deg); }
+      100% { transform: rotate(0deg); }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>🥷 Number Ninja</h2>
+  <p>একটি সংখ্যা অনুমান করুন (১ থেকে ৯):</p>
+  <input type="number" id="guess" placeholder="আপনার সংখ্যা" min="1" max="9">
+  <button onclick="strike()">Strike!</button>
+
+  <div class="ninja" id="ninja">⚔️</div>
+  <div class="status" id="status">প্রস্তুত...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function strike() {
+      const guess = parseInt(document.getElementById("guess").value);
+      const status = document.getElementById("status");
+      const ninja = document.getElementById("ninja");
+      const user = auth.currentUser;
+
+      if (!guess || guess < 1 || guess > 9) {
+        status.innerText = "❌ অনুগ্রহ করে ১ থেকে ৯ এর মধ্যে একটি সংখ্যা দিন।";
+        return;
+      }
+
+      const target = Math.floor(Math.random() * 9) + 1;
+      ninja.innerText = `⚔️ ${target}`;
+      let outcome = "হার";
+      let reward = "৳0";
+
+      if (guess === target) {
+        outcome = "জয়";
+        reward = "৳৪০";
+        status.innerText = `🎯 আপনি ${guess} অনুমান করেছেন এবং লক্ষ্য ছিল ${target}।\n✅ আপনি জয়ী! পুরস্কার: ৳৪০`;
+      } else {
+        status.innerText = `😢 আপনি ${guess} অনুমান করেছেন কিন্তু লক্ষ্য ছিল ${target}।\n❌ আপনি হারলেন।`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "numberNinja",
+        guess: guess,
+        target: target,
+        result: outcome,
+        reward: reward,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

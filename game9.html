@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🪙 Treasure Spin - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: linear-gradient(#000, #111); color: #FFD700; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 20px; background: #FFD700; color: #000; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 0 10px #FFD700; }
+    .wheel { width: 200px; height: 200px; border-radius: 50%; margin: 20px auto; background: conic-gradient(#FFD700 0% 25%, #222 25% 50%, #FFD700 50% 75%, #222 75% 100%); box-shadow: 0 0 20px #FFD700; animation: glow 2s infinite; }
+    @keyframes glow {
+      0% { box-shadow: 0 0 10px #FFD700; }
+      50% { box-shadow: 0 0 30px #FFD700; }
+      100% { box-shadow: 0 0 10px #FFD700; }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; color: #0f0; }
+  </style>
+</head>
+<body>
+  <h2>🪙 Treasure Spin</h2>
+  <div class="wheel"></div>
+  <button onclick="spin()">Unlock Treasure</button>
+  <div class="status" id="status">Ready to spin for gold!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function spin() {
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+      const rewards = [10, 20, 50, 100, 200, 500];
+      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+      status.innerText = `🎉 You unlocked ৳${reward} from the treasure!`;
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "treasureSpin",
+        result: "win",
+        reward: `৳${reward}`,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

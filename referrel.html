@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Referral - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input { padding: 10px; width: 80%; margin: 10px 0; border-radius: 5px; border: none; }
+    button { padding: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .status { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🔗 Submit Referral Code</h2>
+  <input type="text" id="refCode" placeholder="Enter referral code (UID)">
+  <button onclick="submitReferral()">Submit</button>
+  <div class="status" id="status"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function submitReferral() {
+      const user = auth.currentUser;
+      const uid = user.uid;
+      const code = document.getElementById("refCode").value.trim();
+      const status = document.getElementById("status");
+
+      if (!code || code === uid) {
+        status.innerText = "⚠️ Invalid referral code.";
+        return;
+      }
+
+      const userRef = db.collection("users").doc(uid);
+      userRef.get().then(doc => {
+        if (doc.exists && !doc.data().referredBy) {
+          db.collection("users").doc(code).get().then(refDoc => {
+            if (refDoc.exists) {
+              userRef.update({ referredBy: code, referralBonus: true });
+              db.collection("games").add({ uid: uid, gameId: "referralSubmit", reward: "৳10", time: new Date().toISOString() });
+              db.collection("games").add({ uid: code, gameId: "referralEarned", reward: "৳20", time: new Date().toISOString() });
+              status.innerText = "🎉 Referral submitted! Bonus added.";
+            } else {
+              status.innerText = "❌ Referral code not found.";
+            }
+          });
+        } else {
+          status.innerText = "⚠️ You already submitted a referral.";
+        }
+      });
+    }
+  </script>
+</body>
+</html>

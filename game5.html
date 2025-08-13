@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game 5 - Flip & Win</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    .cards { display: flex; justify-content: center; gap: 20px; margin: 20px; }
+    .card { background: #111; padding: 40px; border-radius: 10px; box-shadow: 0 0 10px #0f0; cursor: pointer; font-size: 2em; }
+    .result { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🃏 Flip & Win</h2>
+  <div class="cards">
+    <div class="card" onclick="flipCard(0)">❓</div>
+    <div class="card" onclick="flipCard(1)">❓</div>
+  </div>
+  <div class="result" id="result"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let flipped = false;
+    const rewards = [0, 100]; // One card has ৳100, one has ৳0
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function flipCard(index) {
+      if (flipped) return;
+      flipped = true;
+
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const reward = `৳${rewards[index]}`;
+      const cards = document.getElementsByClassName("card");
+      cards[index].innerText = reward;
+      cards[1 - index].innerText = `৳${rewards[1 - index]}`;
+      document.getElementById("result").innerText = `🎉 You flipped and won ${reward}!`;
+
+      const log = {
+        uid: user.uid,
+        email: user.email,
+        gameId: "game5",
+        reward: reward,
+        time: new Date().toISOString()
+      };
+
+      db.collection("games").add(log)
+        .then(() => console.log("Flip game logged"))
+        .catch(err => console.error("Error:", err));
+    }
+  </script>
+</body>
+</html>

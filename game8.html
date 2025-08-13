@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🧊 Mega Cube Clash - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 20px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .cube { font-size: 4em; margin: 20px 0; animation: pulse 1s infinite; }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>🧊 Mega Cube Clash</h2>
+  <button onclick="clash()">CLASH</button>
+  <div class="cube" id="cube">🧊</div>
+  <div class="status" id="status">Ready to clash!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function clash() {
+      const cube = document.getElementById("cube");
+      const status = document.getElementById("status");
+      const user = auth.currentUser;
+
+      const outcomes = ["🔥", "💥", "🎉", "❌"];
+      const result = outcomes[Math.floor(Math.random() * outcomes.length)];
+      cube.innerText = result;
+
+      let reward = "৳0";
+      let outcome = "loss";
+
+      if (result === "🎉") {
+        reward = "৳50";
+        outcome = "win";
+        status.innerText = `🎉 Cube Clash Success!\nYou won ৳50!`;
+      } else {
+        status.innerText = `💥 Cube Clash Failed.\nBetter luck next time!`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "megaCubeClash",
+        result: outcome,
+        reward: reward,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

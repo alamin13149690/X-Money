@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Language - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .status { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🌐 Choose Your Language</h2>
+  <button onclick="setLanguage('en')">🇬🇧 English</button>
+  <button onclick="setLanguage('bn')">🇧🇩 বাংলা</button>
+  <div class="status" id="status">Loading...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      const uid = user.uid;
+      const userRef = db.collection("users").doc(uid);
+
+      userRef.get().then(doc => {
+        const lang = doc.data().language || "Not set";
+        document.getElementById("status").innerText = `🌐 Current Language: ${lang}`;
+      });
+    });
+
+    function setLanguage(lang) {
+      const uid = auth.currentUser.uid;
+      db.collection("users").doc(uid).update({ language: lang });
+      document.getElementById("status").innerText = `✅ Language set to: ${lang}`;
+    }
+  </script>
+</body>
+</html>

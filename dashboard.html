@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>📊 Dashboard - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; padding: 20px; }
+    .card { background: #111; padding: 20px; margin: 15px 0; border-radius: 10px; box-shadow: 0 0 10px #0f0; }
+    h2, h3 { color: #FFD700; }
+    .item { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <h2>📊 Dashboard</h2>
+
+  <div class="card" id="profile">
+    <h3>👤 Account Info</h3>
+    <div class="item" id="email">Email: ...</div>
+    <div class="item" id="vip">VIP Level: ...</div>
+    <div class="item" id="wallet">Wallet Balance: ...</div>
+  </div>
+
+  <div class="card" id="recentGames">
+    <h3>🎮 Recent Games</h3>
+    <div id="gameList">Loading...</div>
+  </div>
+
+  <div class="card" id="transactions">
+    <h3>💰 Transactions</h3>
+    <div id="depositList">Deposits: Loading...</div>
+    <div id="withdrawList">Withdrawals: Loading...</div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+
+      const uid = user.uid;
+      document.getElementById("email").innerText = "Email: " + user.email;
+
+      // Load user profile
+      db.collection("users").doc(uid).get().then(doc => {
+        const data = doc.data();
+        document.getElementById("vip").innerText = "VIP Level: " + (data.vipLevel || 0);
+        document.getElementById("wallet").innerText = "Wallet Balance: ৳" + (data.wallet || 0);
+      });
+
+      // Load recent games
+      db.collection("games").where("uid", "==", uid).orderBy("time", "desc").limit(5).get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const g = doc.data();
+          html += `🕹️ ${g.gameId} → ${g.result} → ${g.reward}<br>`;
+        });
+        document.getElementById("gameList").innerHTML = html || "No games played yet.";
+      });
+
+      // Load deposits
+      db.collection("deposits").where("uid", "==", uid).orderBy("time", "desc").limit(3).get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          html += `📥 ৳${d.amount} → ${d.status}<br>`;
+        });
+        document.getElementById("depositList").innerHTML = html || "No deposits yet.";
+      });
+
+      // Load withdrawals
+      db.collection("withdrawals").where("uid", "==", uid).orderBy("time", "desc").limit(3).get().then(snapshot => {
+        let html = "";
+        snapshot.forEach(doc => {
+          const w = doc.data();
+          html += `📤 ৳${w.amount} → ${w.status}<br>`;
+        });
+        document.getElementById("withdrawList").innerHTML = html || "No withdrawals yet.";
+      });
+    });
+  </script>
+</body>
+</html>

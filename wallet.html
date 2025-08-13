@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Wallet - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input, select, button { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; border: none; }
+    button { background: #0f0; color: #000; font-weight: bold; }
+    .card { background: #111; padding: 20px; margin: 10px; border-radius: 10px; box-shadow: 0 0 10px #0f0; }
+  </style>
+</head>
+<body>
+  <h2>💰 Wallet</h2>
+  <div class="card">
+    <select id="type">
+      <option value="deposit">Deposit</option>
+      <option value="withdraw">Withdraw</option>
+    </select><br>
+    <input type="number" id="amount" placeholder="Enter Amount (৳)" required><br>
+    <button onclick="submitWallet()">Submit</button>
+    <p id="status"></p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function submitWallet() {
+      const type = document.getElementById("type").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const user = auth.currentUser;
+
+      if (!user || isNaN(amount) || amount <= 0) {
+        document.getElementById("status").innerText = "❌ Invalid input.";
+        return;
+      }
+
+      const data = {
+        uid: user.uid,
+        email: user.email,
+        type: type,
+        amount: amount,
+        time: new Date().toISOString(),
+        status: "pending"
+      };
+
+      db.collection("wallet").add(data)
+        .then(() => {
+          document.getElementById("status").innerText = `✅ ${type} request submitted!`;
+        })
+        .catch(error => {
+          document.getElementById("status").innerText = "❌ " + error.message;
+        });
+    }
+  </script>
+</body>
+</html>

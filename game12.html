@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🎨 Color Drop X - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #fff; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 20px; background: #0ff; color: #000; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 0 10px #0ff; }
+    .drop { font-size: 3em; margin: 20px 0; animation: bounce 1s infinite; }
+    @keyframes bounce {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+      100% { transform: translateY(0); }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; color: #0f0; }
+  </style>
+</head>
+<body>
+  <h2>🎨 Color Drop X</h2>
+  <button onclick="dropColor()">DROP COLOR</button>
+  <div class="drop" id="drop">⬇️</div>
+  <div class="status" id="status">Ready to drop!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function dropColor() {
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+      const drop = document.getElementById("drop");
+
+      const colors = [
+        { emoji: "🔴", reward: 10 },
+        { emoji: "🟢", reward: 20 },
+        { emoji: "🔵", reward: 50 },
+        { emoji: "🟡", reward: 100 },
+        { emoji: "⚫", reward: 0 }
+      ];
+
+      const selected = colors[Math.floor(Math.random() * colors.length)];
+      drop.innerText = selected.emoji;
+
+      let result = "loss";
+      if (selected.reward > 0) {
+        result = "win";
+        status.innerText = `🎉 You dropped ${selected.emoji} and won ৳${selected.reward}!`;
+      } else {
+        status.innerText = `❌ You dropped ${selected.emoji} and got no reward.`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "colorDropX",
+        result: result,
+        reward: `৳${selected.reward}`,
+        color: selected.emoji,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

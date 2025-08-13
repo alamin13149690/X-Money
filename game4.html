@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Game 4 - Jackpot Wheel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    .wheel { font-size: 3em; margin: 20px; }
+    button { padding: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .result { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🎡 Jackpot Wheel</h2>
+  <div class="wheel" id="wheel">🎯</div>
+  <button onclick="spinWheel()">Spin Wheel</button>
+  <div class="result" id="result"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) window.location.href = "login.html";
+    });
+
+    function spinWheel() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const prizes = [5, 10, 20, 50, 100, 200, 500];
+      const spin = prizes[Math.floor(Math.random() * prizes.length)];
+      const reward = `৳${spin}`;
+
+      document.getElementById("wheel").innerText = "🎯";
+      document.getElementById("result").innerText = `🎉 You won ${reward}!`;
+
+      const log = {
+        uid: user.uid,
+        email: user.email,
+        gameId: "game4",
+        reward: reward,
+        time: new Date().toISOString()
+      };
+
+      db.collection("games").add(log)
+        .then(() => console.log("Jackpot game logged"))
+        .catch(err => console.error("Error:", err));
+    }
+  </script>
+</body>
+</html>

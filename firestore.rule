@@ -1,0 +1,29 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 🔐 User profile access
+    match /users/{uid} {
+      allow read, update: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null;
+    }
+
+    // 💰 Wallet requests (deposit/withdraw)
+    match /wallet/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow update: if request.auth != null && request.auth.token.admin == true; // Only admin
+    }
+
+    // 🎮 Game logs
+    match /games/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+
+    // 👑 Admin logs (optional)
+    match /adminLogs/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+  }
+}

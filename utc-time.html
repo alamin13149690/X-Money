@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>UTC Time - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: monospace; text-align: center; padding-top: 50px; }
+    .clock { font-size: 2em; margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h2>🌐 Current UTC Time</h2>
+  <div class="clock" id="utcClock">Loading...</div>
+
+  <script>
+    function updateUTC() {
+      const now = new Date();
+      const utc = now.toISOString().slice(0, 19).replace("T", " ");
+      document.getElementById("utcClock").innerText = utc + " UTC";
+    }
+    setInterval(updateUTC, 1000);
+    updateUTC();
+  </script>
+</body>
+</html>

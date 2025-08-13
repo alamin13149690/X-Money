@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Daily Bonus - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .status { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>🎁 Daily Bonus</h2>
+  <button onclick="claimBonus()">Claim Bonus</button>
+  <div class="status" id="status"></div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      checkBonusStatus(user.uid);
+    });
+
+    function checkBonusStatus(uid) {
+      const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      db.collection("users").doc(uid).get().then(doc => {
+        const data = doc.data();
+        if (data && data.bonusDate === today) {
+          document.getElementById("status").innerText = "✅ Bonus already claimed today.";
+        }
+      });
+    }
+
+    function claimBonus() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const userRef = db.collection("users").doc(user

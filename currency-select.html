@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Currency Select - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    select, button { padding: 10px; margin: 10px; border-radius: 5px; border: none; font-weight: bold; }
+    button { background: #0f0; color: #000; }
+    .status { margin-top: 20px; font-size: 1.2em; }
+  </style>
+</head>
+<body>
+  <h2>💱 Choose Your Currency</h2>
+  <select id="currencySelect">
+    <option value="BDT">৳ BDT (Bangladesh)</option>
+    <option value="INR">₹ INR (India)</option>
+    <option value="USD">$ USD (Global)</option>
+  </select>
+  <button onclick="setCurrency()">Save Currency</button>
+  <div class="status" id="status">Loading...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      const uid = user.uid;
+      const userRef = db.collection("users").doc(uid);
+
+      userRef.get().then(doc => {
+        const currency = doc.data().currency || "Not set";
+        document.getElementById("status").innerText = `💱 Current Currency: ${currency}`;
+      });
+    });
+
+    function setCurrency() {
+      const selected = document.getElementById("currencySelect").value;
+      const uid = auth.currentUser.uid;
+      db.collection("users").doc(uid).update({ currency: selected });
+      document.getElementById("status").innerText = `✅ Currency set to: ${selected}`;
+    }
+  </script>
+</body>
+</html>

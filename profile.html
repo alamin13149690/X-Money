@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Profile - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    .card { background: #111; padding: 20px; margin: 15px auto; border-radius: 10px; box-shadow: 0 0 10px #0f0; width: 90%; max-width: 400px; }
+    .highlight { color: #FFD700; font-weight: bold; }
+    img { width: 80px; height: 80px; border-radius: 50%; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <h2>👤 Your Profile</h2>
+  <div class="card" id="profileCard">Loading...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      const uid = user.uid;
+      db.collection("users").doc(uid).get().then(doc => {
+        const data = doc.data();
+        const joinDate = new Date(data.createdAt).toLocaleDateString("en-GB");
+        const card = document.getElementById("profileCard");
+
+        card.innerHTML = `
+          <img src="${data.photoURL || 'https://i.ibb.co/2kR0ZLZ/user.png'}" alt="Profile">
+          📧 Email: <span class="highlight">${data.email}</span><br>
+          🆔 UID: <span class="highlight">${uid}</span><br>
+          👑 VIP Level: ${data.vipLevel || 0}<br>
+          📅 Joined: ${joinDate}<br>
+          🌐 Language: ${data.language || 'Not set'}<br>
+          💱 Currency: ${data.currency || '৳ BDT'}<br>
+          🔗 Referred By: ${data.referredBy || 'None'}
+        `;
+      });
+    });
+  </script>
+</body>
+</html>

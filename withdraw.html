@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Withdraw - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input, select, button { padding: 10px; margin: 10px; width: 85%; border-radius: 5px; border: none; font-weight: bold; }
+    button { background: #0f0; color: #000; }
+    .card { background: #111; padding: 20px; margin: 15px auto; border-radius: 10px; box-shadow: 0 0 10px #0f0; width: 90%; max-width: 400px; }
+    .status { margin-top: 20px; font-size: 1.2em; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>💸 Withdraw</h2>
+
+  <div class="card">
+    <p>📲 Withdraw via bKash or Nagad</p>
+    <p>⚠️ Minimum ৳100 required</p>
+    <p>🛠️ Admin will approve and send manually</p>
+  </div>
+
+  <select id="method">
+    <option value="bKash">bKash</option>
+    <option value="Nagad">Nagad</option>
+  </select>
+  <input type="number" id="amount" placeholder="Amount (৳)">
+  <input type="text" id="number" placeholder="Your bKash/Nagad Number">
+  <button onclick="submitWithdraw()">Request Withdraw</button>
+
+  <div class="status" id="status">Waiting...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function submitWithdraw() {
+      const method = document.getElementById("method").value;
+      const amount = parseFloat(document.getElementById("amount").value);
+      const number = document.getElementById("number").value.trim();
+      const status = document.getElementById("status");
+      const user = auth.currentUser;
+
+      if (!amount || !number) {
+        status.innerText = "❌ Enter amount and your payment number.";
+        return;
+      }
+
+      if (amount < 100) {
+        status.innerText = "⚠️ Minimum withdraw is ৳100.";
+        return;
+      }
+
+      db.collection("withdrawals").add({
+        uid: user.uid,
+        email: user.email,
+        method: method,
+        amount: amount,
+        number: number,
+        status: "pending",
+        time: new Date().toISOString()
+      }).then(() => {
+        status.innerText = `✅ Withdraw request submitted.\nAdmin will approve and send manually.`;
+      }).catch(err => {
+        status.innerText = "❌ Error: " + err.message;
+      });
+    }
+  </script>
+</body>
+</html>

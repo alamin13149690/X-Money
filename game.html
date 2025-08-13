@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Games - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; padding: 20px; }
+    h2 { text-align: center; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-top: 20px; }
+    .card { background: #111; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 0 10px #0f0; }
+    .card:hover { background: #222; cursor: pointer; }
+    a { color: #0f0; text-decoration: none; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🎮 Choose Your Game</h2>
+  <div class="grid" id="gameGrid">
+    <!-- Cards will be injected here -->
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      loadGameCards();
+    });
+
+    function loadGameCards() {
+      const grid = document.getElementById("gameGrid");
+      for (let i = 1; i <= 20; i++) {
+        const name = `Game ${i}: ${getGameName(i)}`;
+        const link = `game${i}.html`;
+        const card = `<div class="card"><a href="${link}">${name}</a></div>`;
+        grid.innerHTML += card;
+      }
+    }
+
+    function getGameName(i) {
+      const names = [
+        "Spin Xplosion", "Lucky Dice", "Crash Rocket", "Jackpot Wheel", "Flip & Win",
+        "Treasure Spin", "Speed Flower", "Hold’em Hero", "Mega Cube Clash", "Emerald Jackpot",
+        "Pirate’s Gold", "Rocket Spin", "Number Ninja", "Color Drop", "Spin Master",
+        "Lucky Wheel", "Card Clash", "Dice Duel", "Jackpot Rush", "Bonus Blast"
+      ];
+      return names[i - 1] || `Game ${i}`;
+    }
+  </script>
+</body>
+</html>

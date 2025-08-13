@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VIP Level - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    .card { background: #111; padding: 20px; margin: 10px; border-radius: 10px; box-shadow: 0 0 10px #0f0; }
+    button { padding: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h2>🏆 Your VIP Status</h2>
+  <div class="card">
+    <p id="vipLevel">Loading VIP level...</p>
+    <button onclick="upgradeVIP()">Upgrade VIP</button>
+    <p id="status"></p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "xmoney-app.firebaseapp.com",
+      projectId: "xmoney-app",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      const uid = user.uid;
+      db.collection("users").doc(uid).get().then(doc => {
+        if (doc.exists) {
+          const vip = doc.data().vipLevel || 0;
+          document.getElementById("vipLevel").innerText = `🎖️ VIP Level: ${vip}`;
+        } else {
+          document.getElementById("vipLevel").innerText = "❌ User not found.";
+        }
+      });
+    });
+
+    function upgradeVIP() {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = db.collection("users").doc(user.uid);
+      userRef.get().then(doc => {
+        if (doc.exists) {
+          let currentVIP = doc.data().vipLevel || 0;
+          if (currentVIP >= 10) {
+            document.getElementById("status").innerText = "🎉 Max VIP Level reached!";
+            return;
+          }
+          userRef.update({ vipLevel: currentVIP + 1 }).then(() => {
+            document.getElementById("vipLevel").innerText = `🎖️ VIP Level: ${currentVIP + 1}`;
+            document.getElementById("status").innerText = "✅ VIP Upgraded!";
+          });
+        }
+      });
+    }
+  </script>
+</body>
+</html>

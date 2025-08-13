@@ -1,0 +1,5 @@
+// Java (Sketchware)
+new Handler().postDelayed(() -> {
+  startActivity(new Intent(MainActivity.this, HomeActivity.class));
+  finish();
+}, 2000); // 2-second splash

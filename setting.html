@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>⚙️ Settings - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; padding: 20px; text-align: center; }
+    input, button { padding: 10px; margin: 10px; width: 85%; border-radius: 5px; border: none; font-weight: bold; }
+    button { background: #0f0; color: #000; }
+    .card { background: #111; padding: 20px; margin: 15px auto; border-radius: 10px; box-shadow: 0 0 10px #0f0; width: 90%; max-width: 400px; }
+    .status { margin-top: 20px; font-size: 1.1em; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>⚙️ Account Settings</h2>
+
+  <div class="card">
+    <p id="email">Email: ...</p>
+    <p id="vip">VIP Level: ...</p>
+    <p id="wallet">Wallet: ...</p>
+  </div>
+
+  <div class="card">
+    <h3>🔑 Change Password</h3>
+    <input type="password" id="newPass" placeholder="New Password">
+    <button onclick="changePassword()">Update Password</button>
+  </div>
+
+  <div class="card">
+    <h3>👑 Upgrade VIP</h3>
+    <button onclick="upgradeVIP()">Upgrade to VIP 1</button>
+  </div>
+
+  <div class="card">
+    <h3>🚪 Logout</h3>
+    <button onclick="logout()">Logout</button>
+  </div>
+
+  <div class="status" id="status">Ready...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="auth.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+      const uid = user.uid;
+      document.getElementById("email").innerText = "Email: " + user.email;
+
+      db.collection("users").doc(uid).get().then(doc => {
+        const data = doc.data();
+        document.getElementById("vip").innerText = "VIP Level: " + (data.vipLevel || 0);
+        document.getElementById("wallet").innerText = "Wallet: ৳" + (data.wallet || 0);
+      });
+    });
+
+    function changePassword() {
+      const newPass = document.getElementById("newPass").value;
+      const status = document.getElementById("status");
+      auth.currentUser.updatePassword(newPass).then(() => {
+        status.innerText = "✅ Password updated successfully.";
+      }).catch(err => {
+        status.innerText = "❌ Error: " + err.message;
+      });
+    }
+
+    function upgradeVIP() {
+      const uid = auth.currentUser.uid;
+      db.collection("users").doc(uid).update({ vipLevel: 1 }).then(() => {
+        document.getElementById("vip").innerText = "VIP Level: 1";
+        document.getElementById("status").innerText = "👑 VIP upgraded!";
+      });
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "login.html";
+      });
+    }
+  </script>
+</body>
+</html>

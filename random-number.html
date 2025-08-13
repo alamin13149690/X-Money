@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔢 Random Number - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    input, button { padding: 10px; margin: 10px; width: 80%; border-radius: 5px; border: none; font-weight: bold; font-size: 1em; }
+    button { background: #0f0; color: #000; box-shadow: 0 0 10px #0f0; }
+    .number { font-size: 3em; margin: 20px 0; }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+  </style>
+</head>
+<body>
+  <h2>🔢 Random Number Game</h2>
+  <p>১ থেকে ১০ এর মধ্যে একটি সংখ্যা অনুমান করুন:</p>
+  <input type="number" id="guess" placeholder="আপনার সংখ্যা" min="1" max="10">
+  <button onclick="play()">Play</button>
+
+  <div class="number" id="number">🎲</div>
+  <div class="status" id="status">প্রস্তুত...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function play() {
+      const guess = parseInt(document.getElementById("guess").value);
+      const status = document.getElementById("status");
+      const number = document.getElementById("number");
+      const user = auth.currentUser;
+
+      if (!guess || guess < 1 || guess > 10) {
+        status.innerText = "❌ অনুগ্রহ করে ১ থেকে ১০ এর মধ্যে একটি সংখ্যা দিন।";
+        return;
+      }
+
+      const generated = Math.floor(Math.random() * 10) + 1;
+      number.innerText = `🎲 ${generated}`;
+      let outcome = "হার";
+      let reward = "৳0";
+
+      if (guess === generated) {
+        outcome = "জয়";
+        reward = "৳৫০";
+        status.innerText = `🎉 আপনি ${guess} অনুমান করেছেন এবং সংখ্যা ছিল ${generated}।\n✅ আপনি জয়ী! পুরস্কার: ৳৫০`;
+      } else {
+        status.innerText = `😢 আপনি ${guess} অনুমান করেছেন কিন্তু সংখ্যা ছিল ${generated}।\n❌ আপনি হারলেন।`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "randomNumber",
+        guess: guess,
+        generated: generated,
+        result: outcome,
+        reward: reward,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

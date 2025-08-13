@@ -1,0 +1,88 @@
+/* ✅ Base Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ✅ Body Styling */
+body {
+  background: #000;
+  color: #0f0;
+  font-family: 'Segoe UI', sans-serif;
+  text-align: center;
+  padding: 20px;
+}
+
+/* ✅ Headings */
+h1, h2, h3 {
+  color: #FFD700;
+  margin-bottom: 15px;
+}
+
+/* ✅ Cards */
+.card {
+  background: #111;
+  padding: 20px;
+  margin: 15px auto;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #0f0;
+  width: 90%;
+  max-width: 400px;
+}
+
+/* ✅ Inputs & Buttons */
+input, select, button {
+  padding: 10px;
+  margin: 10px;
+  width: 85%;
+  border-radius: 5px;
+  border: none;
+  font-weight: bold;
+  font-size: 1em;
+}
+
+button {
+  background: #0f0;
+  color: #000;
+  box-shadow: 0 0 10px #0f0;
+  cursor: pointer;
+}
+
+button:disabled {
+  background: #444;
+  color: #888;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* ✅ Status Text */
+.status {
+  margin-top: 20px;
+  font-size: 1.1em;
+  white-space: pre-line;
+  color: #FFD700;
+}
+
+/* ✅ Game Elements */
+.dice, .plane, .wheel, .drop, .ninja, .rush {
+  font-size: 3em;
+  margin: 20px 0;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); box-shadow: 0 0 10px #0f0; }
+  50% { transform: scale(1.1); box-shadow: 0 0 20px #0f0; }
+  100% { transform: scale(1); box-shadow: 0 0 10px #0f0; }
+}
+
+/* ✅ Responsive */
+@media screen and (max-width: 480px) {
+  input, select, button {
+    width: 95%;
+  }
+  .card {
+    width: 95%;
+  }
+}

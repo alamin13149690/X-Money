@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>⚡ Go Rush - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 12px 24px; margin: 20px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; font-size: 1.1em; box-shadow: 0 0 10px #0f0; }
+    .rush { font-size: 3em; margin: 20px 0; animation: flash 1s infinite; }
+    @keyframes flash {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; color: #FFD700; }
+  </style>
+</head>
+<body>
+  <h2>⚡ Go Rush</h2>
+  <div class="rush" id="rush">⚡</div>
+  <button onclick="goRush()">Go Rush</button>
+  <div class="status" id="status">Ready to rush for rewards!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function goRush() {
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+      const rush = document.getElementById("rush");
+
+      const outcome = Math.random() < 0.5; // 50% win chance
+      let result = "loss";
+      let reward = "৳0";
+
+      if (outcome) {
+        result = "win";
+        reward = "৳60";
+        rush.innerText = "🚀";
+        status.innerText = `🎉 Rush successful!\nYou won ৳60!`;
+      } else {
+        rush.innerText = "💨";
+        status.innerText = `❌ Rush failed.\nTry again later.`;
+      }
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "goRush",
+        result: result,
+        reward: reward,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🎯🃏 Spin & Flip - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 10px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; }
+    .card { font-size: 3em; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h2>🎯 Spin & Flip</h2>
+  <button onclick="spin()">SPIN</button>
+  <div class="card" id="spinResult">🎯</div>
+  <button onclick="flip()" id="flipBtn" disabled>🃏 FLIP</button>
+  <div class="card" id="flipResult">🃏</div>
+  <div class="status" id="status">Ready to play!</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    let reward = 0;
+    let flipped = false;
+
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function spin() {
+      const rewards = [10, 20, 50, 100];
+      reward = rewards[Math.floor(Math.random() * rewards.length)];
+      document.getElementById("spinResult").innerText = `🎯 ৳${reward}`;
+      document.getElementById("flipBtn").disabled = false;
+      document.getElementById("status").innerText = "✅ Spin complete. Now flip!";
+      flipped = false;
+      document.getElementById("flipResult").innerText = "🃏";
+    }
+
+    function flip() {
+      if (flipped) return;
+      flipped = true;
+      const win = Math.random() < 0.5;
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+
+      if (win) {
+        document.getElementById("flipResult").innerText = "🎉";
+        status.innerText = `✅ You flipped and won ৳${reward}!`;
+        db.collection("games").add({
+          uid: user.uid,
+          email: user.email,
+          gameId: "spinFlip",
+          reward: `৳${reward}`,
+          result: "win",
+          time: new Date().toISOString()
+        });
+      } else {
+        document.getElementById("flipResult").innerText = "💥";
+        status.innerText = `❌ You flipped and lost.\nBetter luck next time!`;
+        db.collection("games").add({
+          uid: user.uid,
+          email: user.email,
+          gameId: "spinFlip",
+          reward: "৳0",
+          result: "loss",
+          time: new Date().toISOString()
+        });
+      }
+
+      document.getElementById("flipBtn").disabled = true;
+    }
+  </script>
+</body>
+</html>

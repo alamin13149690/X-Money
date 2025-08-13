@@ -1,0 +1,60 @@
+# 💸 X MONEY – Firebase Income Platform
+
+X MONEY is a mobile-friendly income app built with Firebase Authentication, Firestore, and GitHub Pages. Designed for Bangladeshi users with referral, VIP, bonus, and game systems.
+
+---
+
+## 📁 File Overview
+
+| File Name           | Purpose                                      |
+|---------------------|----------------------------------------------|
+| `login.html`        | User login via Firebase Auth                 |
+| `register.html`     | User registration + Firestore user save      |
+| `index.html`        | Dashboard (VIP, game zone, logout)           |
+| `wallet.html`       | Deposit/Withdraw request + Firestore log     |
+| `vip.html`          | View/Upgrade VIP level                       |
+| `referral.html`     | Submit referral code + bonus logic           |
+| `games.html`        | Game list UI (links to game1–game20)         |
+| `game1.html`        | Spin Xplosion – reward log                   |
+| `game2.html`        | Lucky Dice – reward log                      |
+| `game3.html`        | Crash Rocket – multiplier + cashout log      |
+| `game4.html`        | Jackpot Wheel – spin & win                   |
+| `game5.html`        | Flip & Win – card flip reward                |
+| `bonus.html`        | Daily bonus claim (once per day)             |
+| `utc-time.html`     | Real-time UTC clock                          |
+| `download-app.html` | Android/iOS app links + QR code              |
+| `admin-panel.html`  | Owner panel – view users, wallet, referrals  |
+| `config.js`         | Central Firebase config (used in all HTML)   |
+
+---
+
+## 🔧 Firebase Setup
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Create project → `xmoney-app`
+3. Enable:
+   - Authentication → Email/Password
+   - Firestore Database → Start in production mode
+4. Copy config → paste in `config.js`
+
+---
+
+## 🔐 Firestore Rules (Basic)
+
+```js
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+    match /wallet/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+    match /games/{docId} {
+      allow create: if request.auth != null;
+      allow read: if request.auth != null && request.resource.data.uid == request.auth.uid;
+    }
+  }
+}

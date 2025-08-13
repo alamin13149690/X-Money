@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>💸 Money Coming - X MONEY</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background: #000; color: #0f0; font-family: sans-serif; text-align: center; padding: 30px; }
+    button { padding: 10px 20px; margin: 20px; background: #0f0; color: #000; border: none; border-radius: 5px; font-weight: bold; box-shadow: 0 0 10px #0f0; }
+    .money { font-size: 3em; margin: 20px 0; animation: blink 1s infinite; }
+    @keyframes blink {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+    .status { font-size: 1.2em; margin-top: 20px; white-space: pre-line; color: #FFD700; }
+  </style>
+</head>
+<body>
+  <h2>💸 Money Coming</h2>
+  <div class="money" id="money">💸💸💸</div>
+  <button onclick="reveal()">Tap to Receive</button>
+  <div class="status" id="status">Waiting for your tap...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-firestore.js"></script>
+  <script src="config.js"></script>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) return window.location.href = "login.html";
+    });
+
+    function reveal() {
+      const user = auth.currentUser;
+      const status = document.getElementById("status");
+      const money = document.getElementById("money");
+
+      const rewards = [10, 20, 50, 100];
+      const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+      money.innerText = "💰";
+      status.innerText = `🎉 Money is coming...\nYou received ৳${reward}!`;
+
+      db.collection("games").add({
+        uid: user.uid,
+        email: user.email,
+        gameId: "moneyComing",
+        result: "win",
+        reward: `৳${reward}`,
+        time: new Date().toISOString()
+      });
+    }
+  </script>
+</body>
+</html>
